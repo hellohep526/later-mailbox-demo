@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后来信箱</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --sun: #fbf4b8;
+      --cream: #fffdf6;
+      --paper: #fffaf0;
+      --ink: #252720;
+      --muted: #a2a69d;
+      --green: #9bb89b;
+      --green-dark: #4e6754;
+      --line: #e7dfcf;
+      --shadow: 0 16px 36px rgba(83, 71, 49, .12);
+      --soft-shadow: 0 5px 16px rgba(44, 38, 29, .08);
+    }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: #f4eddb;
+    }
+    body { display: grid; place-items: center; padding: 20px; }
+    button, textarea, input { font: inherit; color: inherit; }
+    button { border: 0; cursor: pointer; }
+    .phone {
+      width: 410px;
+      height: 844px;
+      max-width: calc(100vw - 18px);
+      max-height: calc(100vh - 18px);
+      border-radius: 30px;
+      overflow: hidden;
+      background: var(--cream);
+      box-shadow: 0 20px 52px rgba(74, 63, 42, .2);
+      border: 0;
+      position: relative;
+    }
+    .app {
+      height: 100%;
+      overflow-y: auto;
+      padding: 0;
+      background: var(--cream);
+      scrollbar-width: none;
+      position: relative;
+    }
+    .app::-webkit-scrollbar { display: none; }
+    .hero {
+      position: relative;
+      min-height: 384px;
+      padding: 24px 20px 38px;
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255,255,255,.42) 0 54px, transparent 55px),
+        radial-gradient(circle at 86% 38%, rgba(255,255,255,.34) 0 46px, transparent 47px),
+        var(--sun);
+      overflow: hidden;
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      bottom: -62px;
+      height: 132px;
+      border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+      background: var(--cream);
+    }
+    .feed {
+      position: relative;
+      z-index: 2;
+      padding: 18px 20px 128px;
+    }
+    .brand {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .brand-title { display: flex; gap: 10px; align-items: center; }
+    .env-icon {
+      width: 42px; height: 42px; border: 2.5px solid #171914;
+      border-radius: 14px; position: relative; background: #fff8c9; transform: rotate(-6deg);
+      flex: 0 0 auto;
+    }
+    .env-icon:before, .env-icon:after {
+      content: ""; position: absolute; top: 12px; width: 24px; height: 2.5px;
+      background: #171914;
+    }
+    .env-icon:before { left: 2px; transform: rotate(32deg); transform-origin: left center; }
+    .env-icon:after { right: 2px; transform: rotate(-32deg); transform-origin: right center; }
+    h1 { margin: 0; font-size: 23px; letter-spacing: 0; }
+    .subtitle { margin-top: 4px; color: #7d7d6f; font-size: 12px; line-height: 1.5; }
+    .today-btn {
+      position: relative;
+      min-height: 40px;
+      background: var(--cream);
+      color: var(--green-dark);
+      border: 1.5px dashed rgba(155, 184, 155, .72);
+      border-radius: 18px 21px 17px 20px;
+      padding: 0 13px 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      transform: rotate(2deg);
+      box-shadow: 0 7px 14px rgba(78, 103, 84, .1);
+    }
+    .today-btn:after {
+      content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%;
+      background: #efd272; right: 7px; top: 5px;
+    }
+    .week-strip {
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; margin-bottom: 24px;
+      padding: 0; border-radius: 0; background: transparent;
+      border: 0;
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+    .day-card {
+      min-height: 78px;
+      border: 0;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .68);
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 6px;
+      color: #8c8a74;
+      font-size: 11px;
+      box-shadow: 0 7px 16px rgba(221, 211, 122, .13);
+    }
+    .day-card.today { background: rgba(255, 253, 246, .92); outline: 2px solid rgba(78, 103, 84, .22); color: var(--ink); }
+    .day-num { font-weight: 740; font-size: 18px; line-height: 1.1; color: #6f715f; }
+    .tiny-animal svg { width: 32px; height: 29px; display: block; }
+    .empty-mark {
+      width: 24px; height: 24px; border: 1.5px dashed rgba(140, 138, 116, .36);
+      border-radius: 50%; position: relative; display: grid; place-items: center;
+    }
+    .empty-mark:before {
+      content: "+"; position: static; height: auto; border: 0; color: rgba(140,138,116,.44);
+      font-size: 16px; line-height: 1;
+    }
+    .write-card {
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      min-height: 154px;
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      padding: 20px 18px 20px 22px;
+      border-radius: 30px;
+      background: var(--cream);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(222, 214, 186, .86);
+      overflow: visible;
+      margin-bottom: 0;
+    }
+    .write-card:before { content: none; }
+    .write-card h2 { margin: 0 0 10px; font-size: 13px; line-height: 1.35; color: var(--green-dark); position: relative; z-index: 1; text-decoration: underline; text-decoration-style: wavy; text-decoration-color: rgba(78,103,84,.32); text-underline-offset: 4px; }
+    .write-card h2:after {
+      content: none;
+    }
+    .main-line { font-size: 26px; line-height: 1.24; font-weight: 800; max-width: 230px; position: relative; z-index: 1; }
+    .support-line { margin-top: 8px; font-size: 14px; color: #74786f; position: relative; z-index: 1; line-height: 1.62; }
+    .peek-animal { position: static; width: 88px; height: 96px; justify-self: end; align-self: center; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; margin: 2px 0 16px; gap: 12px; }
+    .section-head h3 { margin: 0; font-size: 19px; line-height: 1.25; }
+    .section-head h3:before { content: none; }
+    .section-head span { color: var(--muted); font-size: 13px; }
+    .letter-list { display: grid; gap: 30px; }
+    .letter-entry { display: grid; grid-template-columns: 46px 1fr; gap: 0; }
+    .entry-date { grid-column: 1 / -1; margin: 0 0 11px; color: #9ea19a; font-size: 17px; font-weight: 500; }
+    .rail { position: relative; color: #aeb1aa; font-size: 15px; line-height: 1.5; padding-top: 1px; }
+    .rail:before { content: ""; position: absolute; top: 29px; left: 7px; width: 2px; height: calc(100% + 22px); background: #e2e4df; }
+    .rail:after { content: ""; position: absolute; left: 1px; top: 23px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c6cac1; background: var(--cream); }
+    .letter-card {
+      position: relative;
+      display: block;
+      width: 100%;
+      color: inherit;
+      min-height: 170px;
+      margin-bottom: 0;
+      padding: 20px 104px 24px 24px;
+      border-radius: 21px;
+      box-shadow: 0 5px 16px rgba(44, 38, 29, .08);
+      border: 1px solid #ece6db;
+      overflow: hidden;
+      text-align: left;
+      background: #fff;
+    }
+    .letter-card:before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(#ded9ce 1.7px, transparent 1.7px); background-size: 28px 28px; opacity: .66; }
+    .letter-card > * { position: relative; z-index: 1; }
+    .letter-card.sage { background: #f4fbfd; }
+    .letter-card.rose { background: #fff5e6; }
+    .letter-card.blue { background: #fbf7ff; }
+    .letter-card.sun { background: #fffdf6; }
+    .letter-card.sun:before { background-image: repeating-linear-gradient(to bottom, transparent 0 30px, rgba(111,105,91,.18) 31px 32px); opacity: 1; }
+    .status {
+      display: inline-block;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      font-size: 12px;
+      background: transparent;
+      margin-bottom: 12px;
+      color: #8a8678;
+    }
+    .status:before { content: ""; display: inline-block; width: 11px; height: 11px; border: 1.5px solid currentColor; border-radius: 50% 50% 50% 4px; background: rgba(255,253,246,.82); transform: rotate(-28deg); margin-right: 7px; vertical-align: -1px; box-shadow: 5px 3px 0 rgba(239,210,114,.26); }
+    .preview { font-size: 22px; line-height: 1.58; white-space: pre-line; min-height: 72px; letter-spacing: 0; }
+    .preview.locked { filter: blur(3.5px); opacity: .9; user-select: none; }
+    .meta { margin-top: 13px; font-size: 12px; color: #8d9188; line-height: 1.55; }
+    .card-animal { position: absolute; right: 24px; bottom: 16px; width: 72px; height: 72px; opacity: .95; z-index: 2; }
+    .card-animal:before {
+      content: ""; position: absolute; inset: auto 2px 3px 2px; height: 12px;
+      background: rgba(134,173,155,.055); border-radius: 50%;
+    }
+    .fab {
+      position: absolute; right: 24px; bottom: 24px;
+      width: 58px; height: 58px; border-radius: 20px 24px 20px 23px;
+      background: #e8f3df;
+      color: var(--green-dark);
+      border: 1.8px dashed #a9c69f;
+      box-shadow: 0 10px 20px rgba(78, 103, 84, .16);
+      font-size: 25px;
+      z-index: 10;
+      transform: rotate(-3deg);
+    }
+    .toast {
+      position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%) translateY(20px);
+      background: rgba(66, 52, 39, .9); color: #fff9ea; padding: 10px 14px;
+      border-radius: 18px; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s ease; z-index: 60;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .mask {
+      position: absolute; inset: 0; background: rgba(39,34,26,.24); z-index: 40;
+      display: none; align-items: flex-end;
+    }
+    .mask.show { display: flex; }
+    .sheet {
+      width: 100%; max-height: 88%; overflow-y: auto; background: var(--cream);
+      border-radius: 30px 30px 0 0; padding: 18px 20px 24px;
+      box-shadow: 0 -16px 44px rgba(45,39,31,.16);
+      animation: sheetIn .32s ease both;
+    }
+    @keyframes sheetIn { from { transform: translateY(28px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
+    .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .sheet h2 { margin: 0; font-size: 22px; line-height: 1.25; letter-spacing: 0; }
+    .close { width: 38px; height: 38px; border-radius: 50%; background: #f2eee2; color: #777a72; font-size: 24px; line-height: 1; }
+    .letter-input {
+      width: 100%; min-height: 270px; resize: vertical; border: 0; outline: 0;
+      border-radius: 22px;
+      padding: 20px;
+      font-size: 23px; line-height: 1.65;
+      background:
+        radial-gradient(#ded9ce 1.7px, transparent 1.7px) 0 0 / 28px 28px,
+        #fff;
+      box-shadow: 0 5px 16px rgba(44,38,29,.08);
+      border: 1px solid #ece6db;
+    }
+    .field-title { margin: 16px 0 9px; font-size: 13px; font-weight: 500; color: #7a7d74; }
+    .choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .choice {
+      min-height: 44px; background: #fffdf7; border: 1px solid #e1d8c8;
+      padding: 9px 12px; border-radius: 15px;
+      font-size: 13px;
+    }
+    .choice.active {
+      color: var(--green-dark); background: #edf5ea; border-color: #b9cfb4;
+      box-shadow: 0 0 0 2px rgba(155,184,155,.14) inset; transform: none;
+    }
+    .custom-days { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .custom-days input {
+      width: 100px; border: 0; outline: 0; background: #fffdf7;
+      border-radius: 15px; padding: 12px; box-shadow: inset 0 0 0 1px #e1d8c8;
+    }
+    .send-btn, .soft-btn {
+      width: 100%; height: 48px; border-radius: 15px;
+      background: #526d58; color: var(--cream); font-weight: 700;
+      border: 0;
+      box-shadow: 0 8px 16px rgba(78,103,84,.16);
+    }
+    .soft-btn { background: var(--cream); color: #74776e; border: 1.5px dashed rgba(212,199,178,.86); box-shadow: none; }
+    .note { color: #969990; font-size: 13px; line-height: 1.7; margin: 12px 2px; }
+    .calendar-shell {
+      margin-top: 14px;
+      padding: 15px 12px 14px;
+      border-radius: 24px;
+      background: #fffaf0;
+      border: 1px solid #e8dfcf;
+      box-shadow: 0 5px 16px rgba(44,38,29,.07);
+    }
+    .weekday-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-bottom: 8px; color: #a2a69d; font-size: 12px; text-align: center; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+    .cal-cell {
+      min-height: 58px; border-radius: 16px; background: rgba(255,255,255,.66);
+      border: 1px solid rgba(232,223,207,.7); display: grid; place-items: center; gap: 4px;
+      font-size: 14px; color: #777a72;
+    }
+    .cal-cell.has { color: var(--ink); background: #f6fbf3; border-color: #cadcc3; }
+    .cal-cell.arrived { color: var(--ink); background: #fbf7ff; border-color: #d9cfe3; }
+    .cal-cell svg { width: 30px; height: 25px; margin-top: -4px; }
+    .cal-legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #85887f; font-size: 12px; line-height: 1.5; }
+    .cal-legend svg { width: 34px; height: 30px; }
+    .read-mask {
+      position: absolute; inset: 0; z-index: 50; display: none; place-items: center; padding: 18px;
+      background: rgba(39,34,26,.24);
+    }
+    .read-mask.show { display: grid; animation: fadeIn .24s ease both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .read-card {
+      width: 100%; max-height: 90%; overflow-y: auto; border-radius: 26px;
+      background: var(--cream);
+      box-shadow: 0 18px 48px rgba(39,34,26,.18); padding: 16px; position: relative;
+      border: 0;
+    }
+    .read-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .read-head h2 { margin: 0; font-size: 22px; }
+    .sealed-wrap { padding: 20px 6px 6px; text-align: center; }
+    .sealed-envelope {
+      position: relative; width: 100%; height: 260px; margin: 12px auto 20px;
+      border-radius: 22px; background: #fff8e9; border: 1.5px dashed #e4d8c4;
+      box-shadow: var(--soft-shadow); overflow: hidden;
+    }
+    .sealed-envelope:before {
+      content: ""; position: absolute; inset: 64px 24px 86px; height: auto;
+      background:
+        linear-gradient(34deg, transparent 49%, rgba(126,106,79,.18) 50% 51%, transparent 52%),
+        linear-gradient(-34deg, transparent 49%, rgba(126,106,79,.18) 50% 51%, transparent 52%),
+        var(--cream);
+      transform: none; border: 1.5px solid #ded0bb; border-radius: 16px;
+    }
+    .sealed-envelope:after {
+      content: ""; position: absolute; left: 50%; top: 132px; transform: translateX(-50%) rotate(-8deg);
+      border: 1.8px dashed var(--green); border-radius: 50%; width: 54px; height: 54px;
+      background: #edf5ea; box-shadow: inset 0 0 0 8px rgba(255,253,246,.68);
+    }
+    .ghost-text { filter: blur(6px); opacity: .45; line-height: 1.95; padding: 112px 30px 0; transform: rotate(-2deg); }
+    .open-scene { padding: 8px 0 2px; }
+    .open-envelope {
+      position: relative; width: 214px; height: 118px; margin: 0 auto 18px;
+      border-radius: 26px; background: #fff0cf; border: 1.5px solid rgba(134,173,155,.13);
+      box-shadow: var(--soft-shadow); animation: arrivePop .38s ease both;
+    }
+    .open-envelope:before {
+      content: ""; position: absolute; left: -2px; right: -2px; top: -48px; height: 78px;
+      background: #fff8dd; border: 1.5px solid rgba(134,173,155,.12); border-bottom: 0;
+      clip-path: polygon(0 100%, 50% 0, 100% 100%); border-radius: 10px 10px 0 0;
+    }
+    .open-envelope:after {
+      content: ""; position: absolute; left: 2px; right: 2px; bottom: 2px; height: 88px;
+      background:
+        linear-gradient(31deg, transparent 48%, rgba(134,173,155,.12) 49%, transparent 50%),
+        linear-gradient(-31deg, transparent 48%, rgba(134,173,155,.12) 49%, transparent 50%),
+        #fff0cf;
+      clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 100%, 0 100%);
+      border-radius: 0 0 8px 8px;
+    }
+    @keyframes arrivePop { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .letter-paper {
+      position: relative; width: 100%; min-height: 210px;
+      background:
+        radial-gradient(#ded9ce 1.7px, transparent 1.7px) 0 0 / 28px 28px,
+        #fff;
+      border-radius: 22px; padding: 28px;
+      box-shadow: 0 5px 16px rgba(44,38,29,.08);
+      border: 1px solid #ece6db;
+      animation: paperShow .42s ease .08s both;
+      white-space: pre-line; line-height: 1.72; font-size: 22px;
+    }
+    @keyframes paperShow { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .read-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    @media (max-width: 520px) {
+      body { padding: 0; }
+      .phone { width: 100vw; height: 100vh; max-width: none; max-height: none; border: 0; border-radius: 0; }
+      .hero { min-height: 396px; padding: 28px 20px 38px; }
+      .week-strip { gap: 6px; }
+      .day-card { min-height: 70px; border-radius: 22px; }
+      .write-card { min-height: 150px; }
+      .main-line { font-size: 26px; }
+      .preview, .letter-input, .letter-paper { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <div class="app" id="app"></div>
+    <button class="fab" id="fab" title="写信">✎</button>
+    <div class="toast" id="toast"></div>
+    <div class="mask" id="writeMask"></div>
+    <div class="mask" id="calendarMask"></div>
+    <div class="read-mask" id="readMask"></div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "later_mailbox_letters";
+    const animals = ["rabbit", "cat", "bear", "fox", "dog"];
+    const themes = ["sage", "rose", "blue", "sun"];
+    const seedLetters = [
+      {
+        id: "a1",
+        sendISO: "2026-04-21",
+        sendTime: "4月21日 22:16",
+        arrivalText: "预计今天抵达",
+        state: "arrived",
+        date: todayISO(),
+        theme: "sun",
+        animal: "rabbit",
+        message: "这一段会不会过去。\n\n它没有一下子变好，\n但你已经不像那天晚上那么害怕了。"
+      },
+      {
+        id: "b2",
+        sendISO: "2026-07-01",
+        sendTime: "7月1日 19:44",
+        arrivalText: "预计8月1日抵达",
+        state: "locked",
+        date: "2026-08-01",
+        theme: "sage",
+        animal: "cat",
+        message: "如果那时候还在担心，\n就先深呼吸一下。\n慢一点也没有关系。"
+      },
+      {
+        id: "c3",
+        sendISO: "2026-06-30",
+        sendTime: "6月30日 20:12",
+        arrivalText: "随机抵达",
+        state: "locked",
+        date: "random",
+        theme: "blue",
+        animal: "fox",
+        message: "给面试后的自己：\n如果没有按预想发生，\n也请先好好吃饭。"
+      }
+    ];
+
+    let letters = loadLetters();
+    let selectedTime = "7";
+    let customDays = "";
+    let draft = "";
+    let toastTimer = null;
+
+    function loadLetters() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        return Array.isArray(saved) && saved.length ? saved.map(normalizeLetter) : seedLetters;
+      } catch {
+        return seedLetters;
+      }
+    }
+    function normalizeLetter(letter) {
+      const themeMap = { rain: "sage", station: "rose", night: "blue", desk: "sun" };
+      return {
+        id: letter.id || String(Date.now()),
+        sendISO: letter.sendISO || inferSendISO(letter.sendTime),
+        sendTime: letter.sendTime || sendTimeText(),
+        arrivalText: letter.arrivalText || cnDate(letter.date || "random"),
+        state: letter.state || "locked",
+        date: letter.date || "random",
+        theme: themeMap[letter.theme] || letter.theme || "sage",
+        animal: letter.animal || "rabbit",
+        message: letter.message || ""
+      };
+    }
+    function inferSendISO(sendTime) {
+      const match = String(sendTime || "").match(/(\d+)月(\d+)日/);
+      const year = new Date().getFullYear();
+      if (!match) return todayISO();
+      return `${year}-${String(match[1]).padStart(2, "0")}-${String(match[2]).padStart(2, "0")}`;
+    }
+    function saveLetters() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(letters));
+    }
+    function todayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function dateAfter(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + Number(days || 1));
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function cnDate(iso) {
+      if (iso === "random") return "随机抵达";
+      const d = new Date(iso + "T00:00:00");
+      const now = new Date(todayISO() + "T00:00:00");
+      if (+d === +now) return "今天抵达";
+      return `预计 ${d.getMonth() + 1}月${d.getDate()}日抵达`;
+    }
+    function sendTimeText() {
+      const d = new Date();
+      return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    }
+    function isArrived(letter) {
+      if (letter.state === "arrived") return true;
+      if (letter.date === "random") return false;
+      return new Date(letter.date + "T00:00:00") <= new Date(todayISO() + "T00:00:00");
+    }
+    function animalSvg(type, extraClass = "") {
+      const colors = {
+        rabbit: ["#fcfff8", "#86ad9b"],
+        cat: ["#fffaf0", "#aaa092"],
+        bear: ["#fff7e8", "#a99786"],
+        fox: ["#fff4ea", "#ad947d"],
+        dog: ["#fffaf0", "#a69b8d"]
+      };
+      const c = colors[type] || colors.rabbit;
+      const stroke = c[1];
+      const ears = {
+        rabbit: `<path d="M26 29 C22 20 23 12 28 10 C35 12 35 25 31 31" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M43 30 C42 20 47 11 53 12 C58 18 53 29 48 33" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+        cat: `<path d="M22 34 L28 18 L36 34" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 34 L52 18 L58 34" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+        bear: `<circle cx="26" cy="31" r="9" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2"/><circle cx="54" cy="31" r="9" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2"/>`,
+        fox: `<path d="M20 36 L31 18 L38 37" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 37 L50 18 L61 36" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+        dog: `<path d="M22 32 C15 36 16 48 24 52" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round"/><path d="M58 32 C65 36 64 48 56 52" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round"/>`
+      }[type] || "";
+      return `<svg class="${extraClass}" viewBox="0 0 80 80" aria-hidden="true">
+        ${ears}
+        <path d="M18 46 C18 28 31 24 40 25 C51 25 62 31 62 47 C62 62 51 68 40 68 C28 68 18 61 18 46Z" fill="${c[0]}" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="31" cy="46" r="2.6" fill="${stroke}"/><circle cx="49" cy="46" r="2.6" fill="${stroke}"/>
+        <path d="M38 54 Q40 56 42 54" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M25 55 Q20 53 17 55M55 55 Q60 53 63 55" fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>
+      </svg>`;
+    }
+    function shortMessage(text) {
+      return String(text).split("\n").filter(Boolean).slice(0, 2).join("\n").slice(0, 38);
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[ch]));
+    }
+    function render() {
+      const app = document.getElementById("app");
+      app.innerHTML = `
+        <section class="hero">
+          <section class="brand">
+            <div>
+              <div class="brand-title"><div class="env-icon"></div><div><h1>后来信箱</h1><div class="subtitle">把今天寄给以后的自己</div></div></div>
+            </div>
+            <button class="today-btn" onclick="openToday()">今日抵达</button>
+          </section>
+          <section class="week-strip" onclick="openCalendar()">${renderWeek()}</section>
+          <section class="write-card" onclick="openWrite()">
+            <div>
+              <h2>寄一封信</h2>
+              <div class="main-line">把今天留下来，<br>让以后打开。</div>
+              <div class="support-line">不用现在就回答。</div>
+            </div>
+            <div class="peek-animal">${animalSvg("rabbit")}</div>
+          </section>
+        </section>
+        <section class="feed">
+          <div class="section-head"><h3>路上的信</h3><span>按寄出时间</span></div>
+          <div class="letter-list">${letters.map(renderLetterCard).join("")}</div>
+        </section>
+      `;
+    }
+    function renderWeek() {
+      const now = new Date();
+      const start = new Date(now);
+      start.setDate(now.getDate() - 6);
+      return Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+        const letter = letters.find(x => x.date === iso || x.sendISO === iso);
+        const week = ["日", "一", "二", "三", "四", "五", "六"][d.getDay()];
+        return `<div class="day-card ${iso === todayISO() ? "today" : ""}">
+          <div class="day-num">${d.getDate()}</div>
+          <div>${week}</div>
+          ${letter ? `<div class="tiny-animal">${animalSvg(letter.animal)}</div>` : `<div class="empty-mark"></div>`}
+        </div>`;
+      }).join("");
+    }
+    function renderLetterCard(letter) {
+      const arrived = isArrived(letter);
+      const [dateText, timeText = ""] = (letter.sendTime || "").split(" ");
+      return `<article class="letter-entry">
+        <h2 class="entry-date">${escapeHtml(dateText)}</h2>
+        <div class="rail">${escapeHtml(timeText)}</div>
+        <button class="letter-card ${letter.theme}" onclick="openRead('${letter.id}')">
+          <div class="status">${arrived ? "今天抵达" : cnDate(letter.date)}</div>
+          <div class="preview ${arrived ? "" : "locked"}">${escapeHtml(shortMessage(letter.message))}</div>
+          <div class="meta">${escapeHtml(letter.sendTime)} 寄出 · ${escapeHtml(letter.arrivalText)}</div>
+          <div class="card-animal">${animalSvg(letter.animal)}</div>
+        </button>
+      </article>`;
+    }
+    function openWrite() {
+      const mask = document.getElementById("writeMask");
+      mask.innerHTML = `<div class="sheet">
+        <div class="sheet-head"><h2>给未来的自己</h2><button class="close" onclick="closeSheet('writeMask')">×</button></div>
+        <textarea class="letter-input" id="letterInput" placeholder="有些话，可以晚一点再读。">${escapeHtml(draft)}</textarea>
+        <div class="field-title">希望它什么时候回来</div>
+        <div class="choices">${[
+          ["1","明天"],["7","7天后"],["30","一个月后"],["random","随机"]
+        ].map(([v,t]) => `<button class="choice ${selectedTime === v ? "active" : ""}" onclick="selectTime('${v}')">${t}</button>`).join("")}</div>
+        <div class="custom-days"><input id="customDays" type="number" min="1" value="${escapeHtml(customDays)}" oninput="setCustomDays(this.value)"> 天后</div>
+        <p class="note">寄出后，这封信会先被时间收好，到约定的时候再回来。</p>
+        <button class="send-btn" onclick="sendLetter()">寄出</button>
+      </div>`;
+      mask.classList.add("show");
+    }
+    function selectTime(value) {
+      draft = document.getElementById("letterInput")?.value || "";
+      selectedTime = value;
+      openWrite();
+    }
+    function setCustomDays(value) {
+      customDays = value;
+      selectedTime = "custom";
+    }
+    function sendLetter() {
+      const input = document.getElementById("letterInput");
+      const message = (input.value || "").trim();
+      if (!message) {
+        showToast("先留下一句话。晚一点的你会读到。");
+        return;
+      }
+      const idx = letters.length + message.length;
+      const animal = animals[idx % animals.length];
+      const theme = themes[idx % themes.length];
+      const days = selectedTime === "custom" ? Number(customDays || 1) : Number(selectedTime || 7);
+      const date = selectedTime === "random" ? "random" : dateAfter(days);
+      const arrivalText = selectedTime === "random" ? "随机抵达" : cnDate(date);
+      letters.unshift({
+        id: String(Date.now()),
+        sendISO: todayISO(),
+        sendTime: sendTimeText(),
+        arrivalText,
+        state: "locked",
+        date,
+        theme,
+        animal,
+        message
+      });
+      saveLetters();
+      draft = "";
+      customDays = "";
+      selectedTime = "7";
+      closeSheet("writeMask");
+      render();
+      showToast("已经寄出。让时间先替你收好。");
+    }
+    function openCalendar() {
+      const mask = document.getElementById("calendarMask");
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const days = new Date(year, month + 1, 0).getDate();
+      const first = new Date(year, month, 1).getDay();
+      const blanks = Array.from({ length: first === 0 ? 6 : first - 1 }).map(() => `<div class="cal-blank"></div>`).join("");
+      const cells = Array.from({ length: days }).map((_, i) => {
+        const day = i + 1;
+        const iso = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+        const letter = letters.find(x => x.date === iso || x.sendISO === iso);
+        return `<button class="cal-cell ${letter ? (isArrived(letter) ? "arrived" : "has") : ""}" ${letter ? `onclick="openRead('${letter.id}')"` : ""}>
+          <span>${day}</span>${letter ? animalSvg(letter.animal) : ""}
+        </button>`;
+      }).join("");
+      mask.innerHTML = `<div class="sheet">
+        <div class="sheet-head"><h2>${month + 1}月的信</h2><button class="close" onclick="closeSheet('calendarMask')">×</button></div>
+        <p class="note">有小动物的日子，说明那天寄出过一封给未来自己的信。</p>
+        <div class="calendar-shell">
+          <div class="weekday-row"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="calendar-grid">${blanks}${cells}</div>
+          <div class="cal-legend">${animalSvg("rabbit")}<span>这一天有寄出的信</span></div>
+        </div>
+      </div>`;
+      mask.classList.add("show");
+    }
+    function openToday() {
+      const letter = letters.find(x => isArrived(x));
+      if (letter) openRead(letter.id);
+      else showToast("今天还没有抵达的信。");
+    }
+    function openRead(id) {
+      closeSheet("calendarMask");
+      const letter = letters.find(x => x.id === id);
+      if (!letter) return;
+      const arrived = isArrived(letter);
+      const mask = document.getElementById("readMask");
+      mask.innerHTML = arrived ? renderArrived(letter) : renderLocked(letter);
+      mask.classList.add("show");
+    }
+    function renderLocked(letter) {
+      return `<div class="read-card">
+        <div class="read-head"><div><h2>这封信还封着</h2><div class="subtitle">到时间再打开</div></div><button class="close" onclick="closeRead()">×</button></div>
+        <div class="sealed-wrap">
+          <div class="sealed-envelope"><div class="ghost-text">${escapeHtml(shortMessage(letter.message))}</div></div>
+          <div style="width:92px;margin:0 auto">${animalSvg(letter.animal)}</div>
+        </div>
+        <div class="read-actions"><button class="soft-btn" onclick="closeRead()">先放回去</button><button class="soft-btn" onclick="closeRead();openWrite()">再写一封</button></div>
+      </div>`;
+    }
+    function renderArrived(letter) {
+      return `<div class="read-card">
+        <div class="read-head"><div><h2>信抵达了</h2><div class="subtitle">今天抵达</div></div><button class="close" onclick="closeRead()">×</button></div>
+        <div class="open-scene">
+          <div class="open-envelope"></div>
+          <div class="letter-paper">${escapeHtml(letter.message)}</div>
+        </div>
+        <div class="read-actions"><button class="soft-btn" onclick="closeRead()">先放回去</button><button class="soft-btn" onclick="closeRead();openWrite()">再写一封</button></div>
+      </div>`;
+    }
+    function closeSheet(id) {
+      const mask = document.getElementById(id);
+      mask.classList.remove("show");
+      mask.innerHTML = "";
+    }
+    function closeRead() {
+      const mask = document.getElementById("readMask");
+      mask.classList.remove("show");
+      mask.innerHTML = "";
+    }
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      clearTimeout(toastTimer);
+      toast.textContent = text;
+      toast.classList.add("show");
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+    document.getElementById("fab").addEventListener("click", openWrite);
+    document.getElementById("writeMask").addEventListener("click", e => { if (e.target.id === "writeMask") closeSheet("writeMask"); });
+    document.getElementById("calendarMask").addEventListener("click", e => { if (e.target.id === "calendarMask") closeSheet("calendarMask"); });
+    document.getElementById("readMask").addEventListener("click", e => { if (e.target.id === "readMask") closeRead(); });
+    window.openWrite = openWrite;
+    window.openCalendar = openCalendar;
+    window.openToday = openToday;
+    window.openRead = openRead;
+    window.closeSheet = closeSheet;
+    window.closeRead = closeRead;
+    window.selectTime = selectTime;
+    window.setCustomDays = setCustomDays;
+    window.sendLetter = sendLetter;
+    render();
+  </script>
+</body>
+</html>
